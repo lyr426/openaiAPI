@@ -9,16 +9,14 @@ const openai = new OpenAI({
 exports.getImage = (req, res) => {
     const { text } = req.body;  
     console.log(text); 
-    const url = textToImage(text);
-    res.status(200).send(url); 
+    const url = textToImage(text, res);
+    // res.status(200).send(url); 
 };
 
 exports.getTranslate = (req, res) => {
     const { query } = req.body; 
     console.log(query)
-    const response = translate(query);
-    const translatedText = response.message.result;
-    res.status(200).send(translatedText); 
+    const response = translate(query, res);
 }
 
 async function textToImage(prompt, quality = 'standard', size = '1024x1024', n = 1){
@@ -34,18 +32,18 @@ async function textToImage(prompt, quality = 'standard', size = '1024x1024', n =
     
         // 이미지 URL 받아오기
         console.log(response);
-        const imageUrl = response.created.data[0].url;
-    
-        // 이미지 다운로드 및 처리 (여기서는 예시로 콘솔에 이미지 URL 출력)
-        console.log('Image URL:', imageUrl);
-        return imageUrl
+        // const imageUrl = response.created.data[0].url;
+
+        res.writeHead(200, {'Content-Type': 'text/json;charset=utf-8'});
+        res.end(response);
+        return response
     } catch (error) {
         console.error('Error:', error);
         return error
     }
 }
 
-async function translate(query) {
+async function translate(query, res) {
     const client_id = process.env.NAVER_CLIENT_ID;
     const client_secret = process.env.NAVER_CLIENT_SECRET;  
     const api_url = 'https://openapi.naver.com/v1/papago/n2mt';
@@ -58,8 +56,10 @@ async function translate(query) {
      try{
         const response = await request.post(options); 
         console.log(response);
-        const translatedText = response.message.result;
+        // const translatedText = response.message.result;
 
+        res.writeHead(200, {'Content-Type': 'text/json;charset=utf-8'});
+        res.end(response);
         return response;
      } catch (error) {
         console.error('Error:', error); 
