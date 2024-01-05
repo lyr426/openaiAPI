@@ -1,4 +1,5 @@
 const OpenAI = require('openai');
+const request = require('request-promise'); 
 require('dotenv').config();
 
 const openai = new OpenAI({
@@ -8,8 +9,17 @@ const openai = new OpenAI({
 exports.getImage = (req, res) => {
     const { text } = req.body;  
     console.log(text); 
-    textToImage(text);
+    const url = textToImage(text);
+    res.status(200).send(url); 
 };
+
+exports.getTranslate = (req, res) => {
+    const { query } = req.body; 
+    console.log(query)
+    const response = translate(query);
+    const translatedText = response.message.result;
+    res.status(200).send(translatedText); 
+}
 
 async function textToImage(prompt, quality = 'standard', size = '1024x1024', n = 1){
     try {
@@ -23,19 +33,36 @@ async function textToImage(prompt, quality = 'standard', size = '1024x1024', n =
         });
     
         // 이미지 URL 받아오기
-        const imageUrl = response.output.url;
+        console.log(response);
+        const imageUrl = response.created.data[0].url;
     
         // 이미지 다운로드 및 처리 (여기서는 예시로 콘솔에 이미지 URL 출력)
         console.log('Image URL:', imageUrl);
         return imageUrl
-        // 만약 실제로 이미지를 다운로드하거나 저장하고 싶다면 여기서 다운로드 또는 저장 코드를 추가하세요.
     } catch (error) {
         console.error('Error:', error);
         return error
     }
 }
 
-// const textPrompt = 'A cat sitting on a cloud';
-// // 텍스트를 이미지로 변환
-// textToImage(textPrompt);
-    
+async function translate(query) {
+    const client_id = process.env.NAVER_CLIENT_ID;
+    const client_secret = process.env.NAVER_CLIENT_SECRET;  
+    const api_url = 'https://openapi.naver.com/v1/papago/n2mt';
+    const options = {
+        url: api_url,
+        form: {'source':'ko', 'target':'en', 'text':query},
+        headers: {'X-Naver-Client-Id':client_id, 'X-Naver-Client-Secret': client_secret}
+     };
+
+     try{
+        const response = await request.post(options); 
+        console.log(response);
+        const translatedText = response.message.result;
+
+        return response;
+     } catch (error) {
+        console.error('Error:', error); 
+        return error; 
+     }
+}
