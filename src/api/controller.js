@@ -23,7 +23,7 @@ async function textToImage(prompt, quality = 'standard', size = '1024x1024', n =
     try {
         // DALL·E 3 API 호출을 위한 요청 설정
         const response = await openai.images.generate({
-          model: 'dall-e-3',
+          model: 'dall-e-2',
           prompt,
         //   quality,
         //   size,
